@@ -78,6 +78,7 @@ export default function TrackPage() {
       timestamp: order.createdAt,
       completed: true,
       icon: Package,
+      cancelled: false,
     });
 
     // In progress
@@ -89,6 +90,7 @@ export default function TrackPage() {
       timestamp: order.inProgressAt || null,
       completed: inProgressCompleted,
       icon: Loader2,
+      cancelled: false,
     });
 
     // Ready
@@ -100,6 +102,7 @@ export default function TrackPage() {
       timestamp: order.readyAt || null,
       completed: readyCompleted,
       icon: CheckCircle2,
+      cancelled: false,
     });
 
     // Completed
@@ -110,6 +113,7 @@ export default function TrackPage() {
       timestamp: order.completedAt || null,
       completed: order.status === "completed",
       icon: CheckCircle2,
+      cancelled: false,
     });
 
     // If cancelled, show it
