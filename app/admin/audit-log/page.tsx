@@ -9,7 +9,7 @@ import AdminSidebar from "@/components/Adminsidebar";
 
 export default function AuditLog() {
   const user = useQuery(api.users.getCurrentUser);
-  const allAuditLogs = useQuery(api.auditLogs.getAllAuditLogs);
+  const allAuditLogs = useQuery(api.auditLogs.getAllAuditLogs, {});
   const router = useRouter();
 
   const [searchTerm, setSearchTerm] = useState("");
