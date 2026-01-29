@@ -445,7 +445,6 @@ export default function ManageLaundryPage() {
                           
                           <div className="flex items-center gap-1">
                             {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                              // Show first page, last page, current page, and pages around current page
                               const showPage = 
                                 page === 1 || 
                                 page === totalPages || 
@@ -620,7 +619,20 @@ function ViewOrderModal({
 
   const totalPrice = calculateTotal();
 
+  // Check if all required weights are entered
+  const areAllWeightsEntered = () => {
+    if (order.orderType.clothes && weight.clothes <= 0) return false;
+    if (order.orderType.blanketsLight && weight.blanketsLight <= 0) return false;
+    if (order.orderType.blanketsThick && weight.blanketsThick <= 0) return false;
+    return true;
+  };
+
   const handleMarkAsReady = async () => {
+    if (!areAllWeightsEntered()) {
+      alert("Please enter weight for all laundry types before marking as ready.");
+      return;
+    }
+    
     if (totalPrice === 0) return;
     
     setIsMarkingReady(true);
@@ -812,13 +824,13 @@ function ViewOrderModal({
           {order.status === "in-progress" && (
             <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
               <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
-                Mark as Ready (Add Weight)
+                Mark as Ready (Add Weight) - All fields required
               </label>
               <div className="space-y-3 mb-4">
                 {order.orderType.clothes && (
                   <div>
                     <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">
-                      Clothes (kg) - ₱{pricing?.clothesPricePerKg || 0}/kg
+                      Clothes (kg) * - ₱{pricing?.clothesPricePerKg || 0}/kg
                     </label>
                     <div className="flex gap-2 items-center">
                       <input
@@ -828,6 +840,7 @@ function ViewOrderModal({
                         value={weight.clothes}
                         onChange={(e) => setWeight({ ...weight, clothes: parseInt(e.target.value) || 0 })}
                         className="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+                        required
                       />
                       <span className="text-sm font-medium text-slate-900 dark:text-slate-100 min-w-[80px] text-right">
                         ₱{((weight.clothes || 0) * (pricing?.clothesPricePerKg || 0)).toFixed(2)}
@@ -838,7 +851,7 @@ function ViewOrderModal({
                 {order.orderType.blanketsLight && (
                   <div>
                     <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">
-                      Light Blankets (kg) - ₱{pricing?.blanketsLightPricePerKg || 0}/kg
+                      Light Blankets (kg) * - ₱{pricing?.blanketsLightPricePerKg || 0}/kg
                     </label>
                     <div className="flex gap-2 items-center">
                       <input
@@ -848,6 +861,7 @@ function ViewOrderModal({
                         value={weight.blanketsLight}
                         onChange={(e) => setWeight({ ...weight, blanketsLight: parseInt(e.target.value) || 0 })}
                         className="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+                        required
                       />
                       <span className="text-sm font-medium text-slate-900 dark:text-slate-100 min-w-[80px] text-right">
                         ₱{((weight.blanketsLight || 0) * (pricing?.blanketsLightPricePerKg || 0)).toFixed(2)}
@@ -858,7 +872,7 @@ function ViewOrderModal({
                 {order.orderType.blanketsThick && (
                   <div>
                     <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">
-                      Thick Blankets (kg) - ₱{pricing?.blanketsThickPricePerKg || 0}/kg
+                      Thick Blankets (kg) * - ₱{pricing?.blanketsThickPricePerKg || 0}/kg
                     </label>
                     <div className="flex gap-2 items-center">
                       <input
@@ -868,6 +882,7 @@ function ViewOrderModal({
                         value={weight.blanketsThick}
                         onChange={(e) => setWeight({ ...weight, blanketsThick: parseInt(e.target.value) || 0 })}
                         className="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+                        required
                       />
                       <span className="text-sm font-medium text-slate-900 dark:text-slate-100 min-w-[80px] text-right">
                         ₱{((weight.blanketsThick || 0) * (pricing?.blanketsThickPricePerKg || 0)).toFixed(2)}
@@ -889,11 +904,16 @@ function ViewOrderModal({
 
               <button
                 onClick={handleMarkAsReady}
-                disabled={totalPrice === 0 || isMarkingReady}
+                disabled={!areAllWeightsEntered() || isMarkingReady}
                 className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isMarkingReady ? 'Sending notification...' : `Mark as Ready - ₱${totalPrice.toFixed(2)}`}
               </button>
+              {!areAllWeightsEntered() && (
+                <p className="text-xs text-red-600 dark:text-red-400 mt-2 text-center">
+                  Please enter weight for all laundry types
+                </p>
+              )}
             </div>
           )}
 
@@ -1037,20 +1057,23 @@ function CreateOrderModal({
       return;
     }
 
-    // Combine date and time if both are provided
-    let expectedPickupDate: number | undefined;
-    if (formData.pickupDate && formData.pickupTime) {
-      const dateTimeString = `${formData.pickupDate}T${formData.pickupTime}`;
-      const dateTime = new Date(dateTimeString);
-      
-      // Validate that the datetime is in the future
-      if (dateTime <= new Date()) {
-        alert("Expected pickup date must be in the future");
-        return;
-      }
-      
-      expectedPickupDate = dateTime.getTime();
+    // Check if date and time are both provided
+    if (!formData.pickupDate || !formData.pickupTime) {
+      alert("Please select both pickup date and time");
+      return;
     }
+
+    // Combine date and time
+    const dateTimeString = `${formData.pickupDate}T${formData.pickupTime}`;
+    const dateTime = new Date(dateTimeString);
+    
+    // Validate that the datetime is in the future
+    if (dateTime <= new Date()) {
+      alert("Expected pickup date must be in the future");
+      return;
+    }
+    
+    const expectedPickupDate = dateTime.getTime();
 
     setIsSubmitting(true);
     try {
@@ -1247,7 +1270,7 @@ function CreateOrderModal({
             {/* Date and Time Picker with Better UI */}
             <div className="space-y-3">
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Expected Pickup Date & Time
+                Expected Pickup Date & Time *
               </label>
               
               <div className="grid grid-cols-2 gap-3">
@@ -1255,10 +1278,11 @@ function CreateOrderModal({
                 <div>
                   <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1.5">
                     <Calendar className="inline w-3 h-3 mr-1" />
-                    Date
+                    Date *
                   </label>
                   <input
                     type="date"
+                    required
                     value={formData.pickupDate}
                     min={getMinDate()}
                     onChange={(e) => setFormData({ ...formData, pickupDate: e.target.value })}
@@ -1270,9 +1294,10 @@ function CreateOrderModal({
                 <div>
                   <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1.5">
                     <Clock className="inline w-3 h-3 mr-1" />
-                    Time
+                    Time *
                   </label>
                   <select
+                    required
                     value={formData.pickupTime}
                     onChange={(e) => setFormData({ ...formData, pickupTime: e.target.value })}
                     disabled={!formData.pickupDate}
@@ -1289,7 +1314,7 @@ function CreateOrderModal({
               </div>
               
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Available times: 8:00 AM - 8:00 PM
+                Both date and time are required. Available times: 8:00 AM - 8:00 PM
               </p>
             </div>
 
