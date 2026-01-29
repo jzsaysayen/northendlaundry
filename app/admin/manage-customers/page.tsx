@@ -1,5 +1,5 @@
 "use client";
-
+//admin
 import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -268,10 +268,152 @@ function CustomerModal({
     phone: initialData?.phone || "",
     notes: initialData?.notes || "",
   });
+  const [errors, setErrors] = useState({
+    name: "",
+    email: "",
+    phone: "",
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Check if email already exists (only when email changes and is valid format)
+  const [emailToCheck, setEmailToCheck] = useState<string | null>(null);
+  const existingEmailCustomer = useQuery(
+    api.customers.getCustomerByEmail,
+    emailToCheck ? { email: emailToCheck } : "skip"
+  );
+
+  // Check if phone already exists
+  const [phoneToCheck, setPhoneToCheck] = useState<string | null>(null);
+  const existingPhoneCustomer = useQuery(
+    api.customers.getCustomerByPhone,
+    phoneToCheck ? { phone: phoneToCheck } : "skip"
+  );
+
+  // Validation functions
+  const isValidName = (name: string): { valid: boolean; error: string } => {
+    const trimmedName = name.trim();
+    
+    if (!trimmedName) {
+      return { valid: false, error: "Name is required" };
+    }
+    
+    if (trimmedName.length < 2) {
+      return { valid: false, error: "Name must be at least 2 characters" };
+    }
+    
+    if (trimmedName.length > 100) {
+      return { valid: false, error: "Name must not exceed 100 characters" };
+    }
+    
+    // Check for valid characters (letters, spaces, hyphens, apostrophes, dots, commas)
+    const nameRegex = /^[a-zA-Z\s'-.,()\u00C0-\u017F]+$/;
+    if (!nameRegex.test(trimmedName)) {
+      return { valid: false, error: "Name contains invalid characters" };
+    }
+    
+    // Check for excessive spaces
+    if (/\s{2,}/.test(trimmedName)) {
+      return { valid: false, error: "Name cannot contain consecutive spaces" };
+    }
+    
+    return { valid: true, error: "" };
+  };
+
+  const isValidEmail = (email: string): { valid: boolean; error: string } => {
+    const trimmedEmail = email.trim();
+    
+    if (!trimmedEmail) {
+      return { valid: false, error: "Email is required" };
+    }
+    
+    // Email regex pattern
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      return { valid: false, error: "Please enter a valid email address" };
+    }
+    
+    if (trimmedEmail.length > 100) {
+      return { valid: false, error: "Email must not exceed 100 characters" };
+    }
+    
+    // Check if email exists (skip if editing the same customer)
+    if (existingEmailCustomer && existingEmailCustomer._id !== initialData?._id) {
+      return { valid: false, error: "A customer with this email already exists" };
+    }
+    
+    return { valid: true, error: "" };
+  };
+
+  const isValidPhone = (phone: string): { valid: boolean; error: string } => {
+    const trimmedPhone = phone.trim();
+    
+    if (!trimmedPhone) {
+      return { valid: false, error: "Phone number is required" };
+    }
+    
+    // Remove common separators for validation
+    const cleanedPhone = trimmedPhone.replace(/[\s\-()]/g, '');
+    
+    // Check if it contains only digits and + sign at the start
+    const phoneRegex = /^\+?[0-9]+$/;
+    if (!phoneRegex.test(cleanedPhone)) {
+      return { valid: false, error: "Phone number can only contain digits, +, spaces, hyphens, and parentheses" };
+    }
+    
+    // Check minimum length (at least 7 digits for local numbers)
+    if (cleanedPhone.replace(/\+/g, '').length < 7) {
+      return { valid: false, error: "Phone number must be at least 7 digits" };
+    }
+    
+    // Check maximum length (international numbers can be up to 15 digits + country code)
+    if (cleanedPhone.replace(/\+/g, '').length > 15) {
+      return { valid: false, error: "Phone number is too long" };
+    }
+    
+    // Check for valid Philippine format if starts with +63 or 63 or 0
+    if (cleanedPhone.startsWith('+63')) {
+      const digitsAfterCode = cleanedPhone.slice(3);
+      if (digitsAfterCode.length !== 10) {
+        return { valid: false, error: "Philippine number should have 10 digits after +63" };
+      }
+    } else if (cleanedPhone.startsWith('63') && cleanedPhone.length === 12) {
+      const digitsAfterCode = cleanedPhone.slice(2);
+      if (digitsAfterCode.length !== 10) {
+        return { valid: false, error: "Philippine number should have 10 digits after 63" };
+      }
+    } else if (cleanedPhone.startsWith('0') && cleanedPhone.length === 11) {
+      // Valid Philippine mobile format starting with 0
+    }
+    
+    // Check if phone exists (skip if editing the same customer)
+    if (existingPhoneCustomer && existingPhoneCustomer._id !== initialData?._id) {
+      return { valid: false, error: "A customer with this phone number already exists" };
+    }
+    
+    return { valid: true, error: "" };
+  };
+
+  const validateForm = (): boolean => {
+    const nameValidation = isValidName(formData.name);
+    const emailValidation = isValidEmail(formData.email);
+    const phoneValidation = isValidPhone(formData.phone);
+
+    setErrors({
+      name: nameValidation.error,
+      email: emailValidation.error,
+      phone: phoneValidation.error,
+    });
+
+    return nameValidation.valid && emailValidation.valid && phoneValidation.valid;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await onSubmit(formData);
@@ -296,12 +438,17 @@ function CustomerModal({
             </label>
             <input
               type="text"
-              required
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+              onChange={(e) => {
+                setFormData({ ...formData, name: e.target.value });
+                if (errors.name) setErrors({ ...errors, name: "" });
+              }}
+              className={`w-full px-3 py-2 border ${errors.name ? 'border-red-500' : 'border-slate-300 dark:border-slate-600'} rounded-lg focus:ring-2 ${errors.name ? 'focus:ring-red-500' : 'focus:ring-blue-500'} focus:border-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100`}
               placeholder="John Doe"
             />
+            {errors.name && (
+              <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>
+            )}
           </div>
 
           <div>
@@ -310,12 +457,33 @@ function CustomerModal({
             </label>
             <input
               type="email"
-              required
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+              onChange={(e) => {
+                const newEmail = e.target.value;
+                setFormData({ ...formData, email: newEmail });
+                if (errors.email) setErrors({ ...errors, email: "" });
+                
+                // Trigger email check if valid format
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (emailRegex.test(newEmail.trim())) {
+                  setEmailToCheck(newEmail.trim());
+                } else {
+                  setEmailToCheck(null);
+                }
+              }}
+              onBlur={() => {
+                // Validate on blur to show duplicate error
+                const emailValidation = isValidEmail(formData.email);
+                if (!emailValidation.valid) {
+                  setErrors({ ...errors, email: emailValidation.error });
+                }
+              }}
+              className={`w-full px-3 py-2 border ${errors.email ? 'border-red-500' : 'border-slate-300 dark:border-slate-600'} rounded-lg focus:ring-2 ${errors.email ? 'focus:ring-red-500' : 'focus:ring-blue-500'} focus:border-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100`}
               placeholder="john@example.com"
             />
+            {errors.email && (
+              <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
+            )}
           </div>
 
           <div>
@@ -324,12 +492,37 @@ function CustomerModal({
             </label>
             <input
               type="tel"
-              required
               value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+              onChange={(e) => {
+                const newPhone = e.target.value;
+                setFormData({ ...formData, phone: newPhone });
+                if (errors.phone) setErrors({ ...errors, phone: "" });
+                
+                // Trigger phone check if valid format (at least 7 digits)
+                const cleanedPhone = newPhone.replace(/[\s\-()]/g, '');
+                const phoneRegex = /^\+?[0-9]+$/;
+                if (phoneRegex.test(cleanedPhone) && cleanedPhone.replace(/\+/g, '').length >= 7) {
+                  setPhoneToCheck(newPhone.trim());
+                } else {
+                  setPhoneToCheck(null);
+                }
+              }}
+              onBlur={() => {
+                // Validate on blur to show duplicate error
+                const phoneValidation = isValidPhone(formData.phone);
+                if (!phoneValidation.valid) {
+                  setErrors({ ...errors, phone: phoneValidation.error });
+                }
+              }}
+              className={`w-full px-3 py-2 border ${errors.phone ? 'border-red-500' : 'border-slate-300 dark:border-slate-600'} rounded-lg focus:ring-2 ${errors.phone ? 'focus:ring-red-500' : 'focus:ring-blue-500'} focus:border-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100`}
               placeholder="+63 912 345 6789"
             />
+            {errors.phone && (
+              <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.phone}</p>
+            )}
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              Format: +63 912 345 6789 or 0912 345 6789
+            </p>
           </div>
 
           <div>

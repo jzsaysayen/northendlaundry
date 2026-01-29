@@ -3,7 +3,7 @@
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
-import { Search, Filter, Download, Eye } from 'lucide-react';
+import { Search, Filter, Download, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useState } from "react";
 import AdminSidebar from "@/components/Adminsidebar";
 
@@ -15,6 +15,8 @@ export default function AuditLog() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterAction, setFilterAction] = useState<string>("all");
   const [selectedLog, setSelectedLog] = useState<any>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     if (user === undefined) return;
@@ -54,6 +56,17 @@ export default function AuditLog() {
     
     return matchesSearch && matchesFilter;
   }) || [];
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedLogs = filteredLogs.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterAction]);
 
   const getActionBadgeColor = (action: string) => {
     switch (action) {
@@ -258,7 +271,7 @@ export default function AuditLog() {
                         </td>
                       </tr>
                     ) : (
-                      filteredLogs.map((log) => (
+                      paginatedLogs.map((log) => (
                         <tr key={log._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-slate-900 dark:text-slate-100">
@@ -298,6 +311,77 @@ export default function AuditLog() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-slate-600 dark:text-slate-400">
+                      Showing <span className="font-medium">{startIndex + 1}</span> to{' '}
+                      <span className="font-medium">{Math.min(endIndex, filteredLogs.length)}</span> of{' '}
+                      <span className="font-medium">{filteredLogs.length}</span> results
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className="p-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        aria-label="Previous page"
+                      >
+                        <ChevronLeft size={20} />
+                      </button>
+                      
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                          // Show first page, last page, current page, and pages around current page
+                          const showPage = 
+                            page === 1 || 
+                            page === totalPages || 
+                            (page >= currentPage - 1 && page <= currentPage + 1);
+                          
+                          const showEllipsis = 
+                            (page === currentPage - 2 && currentPage > 3) ||
+                            (page === currentPage + 2 && currentPage < totalPages - 2);
+
+                          if (showEllipsis) {
+                            return (
+                              <span key={page} className="px-2 text-slate-400">
+                                ...
+                              </span>
+                            );
+                          }
+
+                          if (!showPage) return null;
+
+                          return (
+                            <button
+                              key={page}
+                              onClick={() => setCurrentPage(page)}
+                              className={`min-w-[40px] px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                currentPage === page
+                                  ? 'bg-blue-600 text-white'
+                                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                        className="p-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        aria-label="Next page"
+                      >
+                        <ChevronRight size={20} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

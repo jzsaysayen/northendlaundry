@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { Search, Plus, Eye } from "lucide-react";
+import { Search, Plus, Eye, Calendar, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import StaffSidebar from "@/components/Staffsidebar";
 import { useRouter } from "next/navigation";
 
@@ -14,11 +15,31 @@ export default function ManageLaundryPage() {
   
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [filterPayment, setFilterPayment] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("date-desc");
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 7;
+
+  // Queries (must be called before any conditional returns)
+  const allOrders = useQuery(api.laundryOrdersQueries.getAllOrders, {
+    status: filterStatus === "all" ? undefined : filterStatus as any,
+  });
+
+  const allCustomers = useQuery(api.customers.getAllCustomers);
+
+  // Mutations (must be called before any conditional returns)
+  const createOrder = useMutation(api.laundryOrders.createOrder);
+  const updateOrderStatus = useMutation(api.laundryOrders.updateOrderStatus);
+  const updatePaymentStatus = useMutation(api.laundryOrders.updatePaymentStatus);
+  const createCustomer = useMutation(api.customers.createCustomer);
+  const generateOrderId = useMutation(api.laundryOrders.generateOrderId);
+
+  // Reset to page 1 when filters change (must be before conditional returns)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterStatus, sortBy]);
 
   useEffect(() => {
     if (user === undefined) return;
@@ -30,21 +51,6 @@ export default function ManageLaundryPage() {
       router.push("/admin");
     }
   }, [user, router]);
-
-  // Queries
-  const allOrders = useQuery(api.laundryOrdersQueries.getAllOrders, {
-    status: filterStatus === "all" ? undefined : filterStatus as any,
-    paymentStatus: filterPayment === "all" ? undefined : filterPayment as any,
-  });
-
-  const allCustomers = useQuery(api.customers.getAllCustomers);
-
-  // Mutations
-  const createOrder = useMutation(api.laundryOrders.createOrder);
-  const updateOrderStatus = useMutation(api.laundryOrders.updateOrderStatus);
-  const updatePaymentStatus = useMutation(api.laundryOrders.updatePaymentStatus);
-  const createCustomer = useMutation(api.customers.createCustomer);
-  const generateOrderId = useMutation(api.laundryOrders.generateOrderId);
 
   // Function to send order confirmation email
   const sendOrderEmail = async (orderData: any, customerEmail: string, customerName: string) => {
@@ -156,6 +162,12 @@ export default function ManageLaundryPage() {
         return b.createdAt - a.createdAt;
     }
   });
+
+  // Pagination calculations
+  const totalPages = Math.ceil(sortedOrders.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedOrders = sortedOrders.slice(startIndex, endIndex);
 
   const getStatusBadgeColor = (status: string) => {
     return "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300";
@@ -284,15 +296,6 @@ export default function ManageLaundryPage() {
                 <option value="cancelled">Cancelled</option>
               </select>
               <select
-                value={filterPayment}
-                onChange={(e) => setFilterPayment(e.target.value)}
-                className="px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
-              >
-                <option value="all">All Payments</option>
-                <option value="paid">Paid</option>
-                <option value="unpaid">Unpaid</option>
-              </select>
-              <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 className="px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
@@ -341,91 +344,156 @@ export default function ManageLaundryPage() {
                   {searchQuery ? "No laundry found" : "No laundry yet. Create your first laundry!"}
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                          Laundry ID
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                          Customer
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                          Type
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                          Status
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                          Payment
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                          Total
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                          Created
-                        </th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                      {sortedOrders.map((order) => (
-                        <tr key={order._id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="font-medium text-slate-900 dark:text-slate-100">
-                              {order.orderId}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="font-medium text-slate-900 dark:text-slate-100">
-                              {order.customer?.name}
-                            </div>
-                            <div className="text-sm text-slate-500 dark:text-slate-400">
-                              {order.customer?.email}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-slate-600 dark:text-slate-300">
-                              {formatOrderType(order.orderType)}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeColor(order.status)}`}>
-                              {getStatusLabel(order.status)}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPaymentBadgeColor(order.paymentStatus)}`}>
-                              {order.paymentStatus === "paid" ? "Paid" : "Unpaid"}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="font-medium text-slate-900 dark:text-slate-100">
-                              {order.pricing?.totalPrice ? `₱${order.pricing.totalPrice}` : "-"}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-slate-600 dark:text-slate-400">
-                              {formatTimestamp(order.createdAt)}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right">
-                            <button
-                              onClick={() => handleViewOrder(order)}
-                              className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                              title="View details"
-                            >
-                              <Eye size={18} />
-                            </button>
-                          </td>
+                <>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                            Actions
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                            Laundry ID
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                            Customer
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                            Type
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                            Total
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                            Created
+                          </th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                        {paginatedOrders.map((order) => (
+                          <tr key={order._id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <button
+                                onClick={() => handleViewOrder(order)}
+                                className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                                title="View details"
+                              >
+                                <Eye size={18} />
+                              </button>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="font-medium text-slate-900 dark:text-slate-100">
+                                {order.orderId}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="font-medium text-slate-900 dark:text-slate-100">
+                                {order.customer?.name}
+                              </div>
+                              <div className="text-sm text-slate-500 dark:text-slate-400">
+                                {order.customer?.email}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-slate-600 dark:text-slate-300">
+                                {formatOrderType(order.orderType)}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeColor(order.status)}`}>
+                                {getStatusLabel(order.status)}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="font-medium text-slate-900 dark:text-slate-100">
+                                {order.pricing?.totalPrice ? `₱${order.pricing.totalPrice}` : "-"}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-slate-600 dark:text-slate-400">
+                                {formatTimestamp(order.createdAt)}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Pagination Controls */}
+                  {totalPages > 1 && (
+                    <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm text-slate-600 dark:text-slate-400">
+                          Showing <span className="font-medium">{startIndex + 1}</span> to{' '}
+                          <span className="font-medium">{Math.min(endIndex, sortedOrders.length)}</span> of{' '}
+                          <span className="font-medium">{sortedOrders.length}</span> results
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            disabled={currentPage === 1}
+                            className="p-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            aria-label="Previous page"
+                          >
+                            <ChevronLeft size={20} />
+                          </button>
+                          
+                          <div className="flex items-center gap-1">
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                              // Show first page, last page, current page, and pages around current page
+                              const showPage = 
+                                page === 1 || 
+                                page === totalPages || 
+                                (page >= currentPage - 1 && page <= currentPage + 1);
+                              
+                              const showEllipsis = 
+                                (page === currentPage - 2 && currentPage > 3) ||
+                                (page === currentPage + 2 && currentPage < totalPages - 2);
+
+                              if (showEllipsis) {
+                                return (
+                                  <span key={page} className="px-2 text-slate-400">
+                                    ...
+                                  </span>
+                                );
+                              }
+
+                              if (!showPage) return null;
+
+                              return (
+                                <button
+                                  key={page}
+                                  onClick={() => setCurrentPage(page)}
+                                  className={`min-w-[40px] px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                    currentPage === page
+                                      ? 'bg-blue-600 text-white'
+                                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+                                  }`}
+                                >
+                                  {page}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          
+                          <button
+                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                            disabled={currentPage === totalPages}
+                            className="p-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            aria-label="Next page"
+                          >
+                            <ChevronRight size={20} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -723,34 +791,22 @@ function ViewOrderModal({
             </div>
           )}
 
-          {/* Payment Status */}
-          <div>
-            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
-              Payment Status
-            </label>
-            <div className="flex gap-2">
-              <button
-                onClick={() => onUpdatePayment(order._id, "unpaid")}
-                className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  order.paymentStatus === "unpaid"
-                    ? "bg-slate-600 text-white"
-                    : "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600"
-                }`}
-              >
-                Unpaid
-              </button>
-              <button
-                onClick={() => onUpdatePayment(order._id, "paid")}
-                className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  order.paymentStatus === "paid"
-                    ? "bg-slate-600 text-white"
-                    : "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600"
-                }`}
-              >
-                Paid
-              </button>
+          {/* Payment Status - Only show for completed orders */}
+          {order.status === "completed" && (
+            <div>
+              <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
+                Payment Status
+              </label>
+              <div className="flex gap-2">
+                <div className="flex-1 px-4 py-2 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-lg text-sm font-medium text-green-800 dark:text-green-300 text-center">
+                  ✓ Paid (Order Completed)
+                </div>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                Payment is automatically processed upon completion
+              </p>
             </div>
-          </div>
+          )}
 
           {/* Update Status - Mark as Ready */}
           {order.status === "in-progress" && (
@@ -857,7 +913,10 @@ function ViewOrderModal({
               )}
               {order.status === "ready" && (
                 <button
-                  onClick={() => onUpdateStatus(order._id, "completed")}
+                  onClick={async () => {
+                    await onUpdateStatus(order._id, "completed");
+                    await onUpdatePayment(order._id, "paid");
+                  }}
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
                 >
                   Mark Completed
@@ -907,6 +966,15 @@ function CreateOrderModal({
   onCreate: (data: any) => Promise<void>;
   createCustomer: any;
 }) {
+  // Get minimum date (today)
+  const getMinDate = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const [formData, setFormData] = useState({
     customerId: "",
     orderType: {
@@ -915,7 +983,8 @@ function CreateOrderModal({
       blanketsThick: false,
     },
     notes: "",
-    expectedPickupDate: "",
+    pickupDate: "",
+    pickupTime: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAddCustomer, setShowAddCustomer] = useState(false);
@@ -968,20 +1037,50 @@ function CreateOrderModal({
       return;
     }
 
+    // Combine date and time if both are provided
+    let expectedPickupDate: number | undefined;
+    if (formData.pickupDate && formData.pickupTime) {
+      const dateTimeString = `${formData.pickupDate}T${formData.pickupTime}`;
+      const dateTime = new Date(dateTimeString);
+      
+      // Validate that the datetime is in the future
+      if (dateTime <= new Date()) {
+        alert("Expected pickup date must be in the future");
+        return;
+      }
+      
+      expectedPickupDate = dateTime.getTime();
+    }
+
     setIsSubmitting(true);
     try {
       await onCreate({
         customerId: formData.customerId as Id<"customers">,
         orderType: formData.orderType,
         notes: formData.notes || undefined,
-        expectedPickupDate: formData.expectedPickupDate 
-          ? new Date(formData.expectedPickupDate).getTime()
-          : undefined,
+        expectedPickupDate,
       });
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Generate time slots (every 30 minutes from 8 AM to 8 PM)
+  const timeSlots = [];
+  for (let hour = 8; hour <= 20; hour++) {
+    for (let minute = 0; minute < 60; minute += 30) {
+      const hourStr = String(hour).padStart(2, '0');
+      const minuteStr = String(minute).padStart(2, '0');
+      const time24 = `${hourStr}:${minuteStr}`;
+      
+      // Format for display (12-hour)
+      const hour12 = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const display = `${hour12}:${minuteStr} ${ampm}`;
+      
+      timeSlots.push({ value: time24, display });
+    }
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -1145,16 +1244,53 @@ function CreateOrderModal({
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Expected Pickup Date
+            {/* Date and Time Picker with Better UI */}
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Expected Pickup Date & Time
               </label>
-              <input
-                type="datetime-local"
-                value={formData.expectedPickupDate}
-                onChange={(e) => setFormData({ ...formData, expectedPickupDate: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
-              />
+              
+              <div className="grid grid-cols-2 gap-3">
+                {/* Date Picker */}
+                <div>
+                  <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1.5">
+                    <Calendar className="inline w-3 h-3 mr-1" />
+                    Date
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.pickupDate}
+                    min={getMinDate()}
+                    onChange={(e) => setFormData({ ...formData, pickupDate: e.target.value })}
+                    className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+                  />
+                </div>
+
+                {/* Time Picker */}
+                <div>
+                  <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1.5">
+                    <Clock className="inline w-3 h-3 mr-1" />
+                    Time
+                  </label>
+                  <select
+                    value={formData.pickupTime}
+                    onChange={(e) => setFormData({ ...formData, pickupTime: e.target.value })}
+                    disabled={!formData.pickupDate}
+                    className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="">Select time</option>
+                    {timeSlots.map((slot) => (
+                      <option key={slot.value} value={slot.value}>
+                        {slot.display}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Available times: 8:00 AM - 8:00 PM
+              </p>
             </div>
 
             <div>

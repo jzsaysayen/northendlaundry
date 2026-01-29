@@ -20,6 +20,11 @@ export default function ManageUsers() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [errors, setErrors] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
 
   // Form states
   const [formData, setFormData] = useState({
@@ -40,7 +45,83 @@ export default function ManageUsers() {
     }
   }, [user, router]);
 
+  // Email validation function
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Name validation function
+  const isValidName = (name: string): { valid: boolean; error: string } => {
+    const trimmedName = name.trim();
+    
+    if (!trimmedName) {
+      return { valid: false, error: "Name is required" };
+    }
+    
+    if (trimmedName.length < 2) {
+      return { valid: false, error: "Name must be at least 2 characters" };
+    }
+    
+    if (trimmedName.length > 50) {
+      return { valid: false, error: "Name must not exceed 50 characters" };
+    }
+    
+    // Check for valid characters (letters, spaces, hyphens, apostrophes)
+    const nameRegex = /^[a-zA-Z\s'-]+$/;
+    if (!nameRegex.test(trimmedName)) {
+      return { valid: false, error: "Name can only contain letters, spaces, hyphens, and apostrophes" };
+    }
+    
+    // Check for excessive spaces
+    if (/\s{2,}/.test(trimmedName)) {
+      return { valid: false, error: "Name cannot contain consecutive spaces" };
+    }
+    
+    return { valid: true, error: "" };
+  };
+
+  // Validate form
+  const validateForm = (isCreating: boolean = false): boolean => {
+    const newErrors = {
+      name: "",
+      email: "",
+      password: "",
+    };
+
+    // Name validation
+    const nameValidation = isValidName(formData.name);
+    if (!nameValidation.valid) {
+      newErrors.name = nameValidation.error;
+    }
+
+    // Email validation
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!isValidEmail(formData.email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    // Password validation (only for create, or if password is provided in edit)
+    if (isCreating) {
+      if (!formData.password) {
+        newErrors.password = "Password is required";
+      } else if (formData.password.length < 6) {
+        newErrors.password = "Password must be at least 6 characters";
+      }
+    } else if (formData.password && formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+
+    setErrors(newErrors);
+    return !newErrors.name && !newErrors.email && !newErrors.password;
+  };
+
   const handleCreateUser = async () => {
+    if (!validateForm(true)) {
+      return;
+    }
+
     try {
       await createUser({
         name: formData.name,
@@ -50,6 +131,7 @@ export default function ManageUsers() {
       });
       setIsCreateModalOpen(false);
       setFormData({ name: "", email: "", password: "", role: "staff" });
+      setErrors({ name: "", email: "", password: "" });
     } catch (error) {
       console.error("Error creating user:", error);
       alert(`Failed to create user: ${error instanceof Error ? error.message : "Unknown error"}`);
@@ -58,6 +140,10 @@ export default function ManageUsers() {
 
   const handleEditUser = async () => {
     if (!selectedUser) return;
+    
+    if (!validateForm(false)) {
+      return;
+    }
     
     try {
       await updateUser({
@@ -69,6 +155,7 @@ export default function ManageUsers() {
       setIsEditModalOpen(false);
       setSelectedUser(null);
       setFormData({ name: "", email: "", password: "", role: "staff" });
+      setErrors({ name: "", email: "", password: "" });
     } catch (error) {
       console.error("Error updating user:", error);
       alert(`Failed to update user: ${error instanceof Error ? error.message : "Unknown error"}`);
@@ -98,12 +185,26 @@ export default function ManageUsers() {
       password: "",
       role: userToEdit.role || "staff",
     });
+    setErrors({ name: "", email: "", password: "" });
     setIsEditModalOpen(true);
   };
 
   const openDeleteModal = (userToDelete: any) => {
     setSelectedUser(userToDelete);
     setIsDeleteModalOpen(true);
+  };
+
+  const closeCreateModal = () => {
+    setIsCreateModalOpen(false);
+    setFormData({ name: "", email: "", password: "", role: "staff" });
+    setErrors({ name: "", email: "", password: "" });
+  };
+
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setSelectedUser(null);
+    setFormData({ name: "", email: "", password: "", role: "staff" });
+    setErrors({ name: "", email: "", password: "" });
   };
 
   if (user === undefined) {
@@ -281,7 +382,7 @@ export default function ManageUsers() {
             <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
               <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Create New User</h2>
               <button
-                onClick={() => setIsCreateModalOpen(false)}
+                onClick={closeCreateModal}
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
               >
                 <X size={24} />
@@ -295,10 +396,16 @@ export default function ManageUsers() {
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={(e) => {
+                    setFormData({ ...formData, name: e.target.value });
+                    if (errors.name) setErrors({ ...errors, name: "" });
+                  }}
+                  className={`w-full px-3 py-2 border ${errors.name ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 ${errors.name ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
                   placeholder="John Doe"
                 />
+                {errors.name && (
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -307,10 +414,16 @@ export default function ManageUsers() {
                 <input
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={(e) => {
+                    setFormData({ ...formData, email: e.target.value });
+                    if (errors.email) setErrors({ ...errors, email: "" });
+                  }}
+                  className={`w-full px-3 py-2 border ${errors.email ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 ${errors.email ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
                   placeholder="john@example.com"
                 />
+                {errors.email && (
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -319,15 +432,34 @@ export default function ManageUsers() {
                 <input
                   type="password"
                   value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={(e) => {
+                    setFormData({ ...formData, password: e.target.value });
+                    if (errors.password) setErrors({ ...errors, password: "" });
+                  }}
+                  className={`w-full px-3 py-2 border ${errors.password ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 ${errors.password ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
                   placeholder="••••••••"
                 />
+                {errors.password && (
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password}</p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Role
+                </label>
+                <select
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value as "staff" | "admin" })}
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="staff">Staff</option>
+                  <option value="admin">Admin</option>
+                </select>
               </div>
             </div>
             <div className="flex items-center justify-end gap-3 p-6 border-t border-slate-200 dark:border-slate-700">
               <button
-                onClick={() => setIsCreateModalOpen(false)}
+                onClick={closeCreateModal}
                 className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
               >
                 Cancel
@@ -350,7 +482,7 @@ export default function ManageUsers() {
             <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
               <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Edit User</h2>
               <button
-                onClick={() => setIsEditModalOpen(false)}
+                onClick={closeEditModal}
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
               >
                 <X size={24} />
@@ -364,9 +496,15 @@ export default function ManageUsers() {
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={(e) => {
+                    setFormData({ ...formData, name: e.target.value });
+                    if (errors.name) setErrors({ ...errors, name: "" });
+                  }}
+                  className={`w-full px-3 py-2 border ${errors.name ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 ${errors.name ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
                 />
+                {errors.name && (
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -375,9 +513,15 @@ export default function ManageUsers() {
                 <input
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={(e) => {
+                    setFormData({ ...formData, email: e.target.value });
+                    if (errors.email) setErrors({ ...errors, email: "" });
+                  }}
+                  className={`w-full px-3 py-2 border ${errors.email ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 ${errors.email ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
                 />
+                {errors.email && (
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -386,15 +530,34 @@ export default function ManageUsers() {
                 <input
                   type="password"
                   value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={(e) => {
+                    setFormData({ ...formData, password: e.target.value });
+                    if (errors.password) setErrors({ ...errors, password: "" });
+                  }}
+                  className={`w-full px-3 py-2 border ${errors.password ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 ${errors.password ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
                   placeholder="••••••••"
                 />
+                {errors.password && (
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password}</p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Role
+                </label>
+                <select
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value as "staff" | "admin" })}
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="staff">Staff</option>
+                  <option value="admin">Admin</option>
+                </select>
               </div>
             </div>
             <div className="flex items-center justify-end gap-3 p-6 border-t border-slate-200 dark:border-slate-700">
               <button
-                onClick={() => setIsEditModalOpen(false)}
+                onClick={closeEditModal}
                 className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
               >
                 Cancel
