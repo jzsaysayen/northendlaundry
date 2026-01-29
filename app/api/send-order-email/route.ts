@@ -148,16 +148,6 @@ export async function POST(request: NextRequest) {
               color: #64748b;
               font-size: 14px;
             }
-            .button {
-              display: inline-block;
-              padding: 12px 30px;
-              background-color: #3b82f6;
-              color: white;
-              text-decoration: none;
-              border-radius: 6px;
-              margin: 20px 0;
-              font-weight: 600;
-            }
             .tips {
               background-color: #f0fdf4;
               padding: 15px;
@@ -187,18 +177,18 @@ export async function POST(request: NextRequest) {
             </div>
             <div class="content">
               <h2 style="color: #1e293b; margin-top: 0;">Hello, ${customerName}! 👋</h2>
-              <p style="font-size: 16px;">Thank you for choosing NorthEnd Laundry! Your order has been successfully received and is now being processed.</p>
+              <p style="font-size: 16px;">Thank you for choosing NorthEnd Laundry! Your laundry has been successfully received and is now being processed.</p>
               
               <div class="tracking-id">
                 <h3>📋 Your Tracking ID</h3>
                 <div class="tracking-number">${orderId}</div>
-                <p style="margin: 10px 0 0 0; font-size: 13px; color: #64748b;">Save this ID to track your order</p>
+                <p style="margin: 10px 0 0 0; font-size: 13px; color: #64748b;">Save this ID to track your laundry</p>
               </div>
 
               <div class="order-card">
-                <h3 style="margin-top: 0; color: #1e293b;">Order Details</h3>
+                <h3 style="margin-top: 0; color: #1e293b;">Laundry Details</h3>
                 <div class="info-row">
-                  <span class="info-label">Order ID:</span>
+                  <span class="info-label">Laundry ID:</span>
                   <span class="info-value"><strong>${orderId}</strong></span>
                 </div>
                 <div class="info-row">
@@ -214,7 +204,7 @@ export async function POST(request: NextRequest) {
                   <span class="info-value">${pickupDateText}</span>
                 </div>
                 <div class="info-row">
-                  <span class="info-label">Order Date:</span>
+                  <span class="info-label">Drop Off Date:</span>
                   <span class="info-value">${new Date().toLocaleString('en-US', {
                     weekday: 'short',
                     year: 'numeric',
@@ -230,18 +220,32 @@ export async function POST(request: NextRequest) {
                 <h4>💡 What's Next?</h4>
                 <ul>
                   <li>We'll notify you when your laundry is being processed</li>
-                  <li>You'll receive another email when your order is ready for pickup</li>
-                  <li>Use your tracking ID (${orderId}) to check your order status anytime</li>
-                  <li>Payment will be processed when you pick up your order</li>
+                  <li>You'll receive another email when your laundry is ready for pickup</li>
+                  <li>Use your tracking ID (${orderId}) to check your laundry status anytime</li>
+                  <li>Payment will be processed when you pick up your laundry</li>
                 </ul>
               </div>
 
               <center>
-                <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/track?id=${orderId}" class="button">Track Your Order</a>
+                <!--[if mso]>
+                <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/track?id=${orderId}" style="height:44px;v-text-anchor:middle;width:200px;" arcsize="14%" fillcolor="#3b82f6">
+                  <w:anchorlock/>
+                  <center style="color:#ffffff;font-family:Arial,sans-serif;font-size:16px;font-weight:600;">Track Your Laundry</center>
+                </v:roundrect>
+                <![endif]-->
+                <!--[if !mso]><!-->
+                <table cellpadding="0" cellspacing="0" border="0" style="margin: 20px 0;">
+                  <tr>
+                    <td bgcolor="#3b82f6" style="border-radius: 6px; padding: 0;">
+                      <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/track?id=${orderId}" target="_blank" style="display: inline-block; padding: 12px 30px; background-color: #3b82f6; color: #ffffff; text-decoration: none; border-radius: 6px; font-family: Arial, sans-serif; font-size: 16px; font-weight: 600; line-height: 1.5;">Track Your Laundry</a>
+                    </td>
+                  </tr>
+                </table>
+                <!--<![endif]-->
               </center>
 
               <p style="color: #64748b; font-size: 14px; margin-top: 30px; text-align: center;">
-                Questions? Contact us at <a href="mailto:${process.env.GMAIL_USER}" style="color: #3b82f6;">${process.env.GMAIL_USER}</a>
+                Questions? Contact us at <a href="mailto:${process.env.GMAIL_USER}" style="color: #3b82f6; text-decoration: none;">${process.env.GMAIL_USER}</a>
               </p>
             </div>
             
@@ -256,7 +260,7 @@ export async function POST(request: NextRequest) {
 
     const result = await sendEmail({
       to,
-      subject: `Order Confirmed - ${orderId} | NorthEnd Laundry`,
+      subject: `Laundry Confirmed - ${orderId} | NorthEnd Laundry`,
       html,
     });
 

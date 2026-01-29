@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
               padding: 20px; 
             }
             .header { 
-              background-color: #1e293b; 
+              background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
               color: white; 
               padding: 30px 20px; 
               text-align: center; 
@@ -43,92 +43,157 @@ export async function POST(request: NextRequest) {
               font-size: 28px;
             }
             .content { 
-              background-color: #f8f9fa; 
+              background-color: #ffffff; 
               padding: 30px; 
-              border-radius: 0 0 8px 8px; 
+              border-radius: 0 0 8px 8px;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             }
-            .status-badge {
-              display: inline-block;
-              background-color: #a855f7;
+            .status-banner {
+              background: linear-gradient(135deg, #10b981 0%, #059669 100%);
               color: white;
-              padding: 10px 20px;
-              border-radius: 20px;
-              font-weight: bold;
+              padding: 20px;
+              border-radius: 8px;
+              text-align: center;
               margin: 20px 0;
-              font-size: 16px;
+              box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
             }
-            .order-info {
-              background-color: white;
+            .status-banner h2 {
+              margin: 0 0 5px 0;
+              font-size: 24px;
+            }
+            .status-banner p {
+              margin: 0;
+              opacity: 0.95;
+              font-size: 15px;
+            }
+            .order-card {
+              background-color: #f8fafc;
               padding: 20px;
               border-radius: 8px;
               margin: 20px 0;
-              border-left: 4px solid #a855f7;
+              border-left: 4px solid #10b981;
             }
-            .order-info h3 {
+            .order-card h3 {
               margin-top: 0;
               color: #1e293b;
+              font-size: 18px;
+            }
+            .order-id-box {
+              background-color: #dbeafe;
+              padding: 12px;
+              border-radius: 6px;
+              text-align: center;
+              margin: 15px 0;
+              border: 2px dashed #3b82f6;
+            }
+            .order-id-box strong {
+              font-size: 18px;
+              color: #1e40af;
+              font-family: 'Courier New', monospace;
+              letter-spacing: 1px;
             }
             .weight-table {
               width: 100%;
               border-collapse: collapse;
               margin: 15px 0;
             }
-            .weight-table td {
-              padding: 8px;
+            .weight-table tr {
               border-bottom: 1px solid #e2e8f0;
+            }
+            .weight-table tr:last-child {
+              border-bottom: none;
+            }
+            .weight-table td {
+              padding: 12px 8px;
             }
             .weight-table td:first-child {
               color: #64748b;
+              font-weight: 600;
+            }
+            .weight-table td:nth-child(2) {
+              color: #1e293b;
+              text-align: center;
             }
             .weight-table td:last-child {
               text-align: right;
-              font-weight: 500;
+              font-weight: 600;
+              color: #1e293b;
             }
             .total-section {
-              background-color: #f1f5f9;
-              padding: 15px;
-              border-radius: 6px;
+              background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+              padding: 20px;
+              border-radius: 8px;
               margin: 20px 0;
+              border: 2px solid #cbd5e1;
             }
             .total-row {
               display: flex;
               justify-content: space-between;
               align-items: center;
-              font-size: 20px;
-              font-weight: bold;
-              color: #1e293b;
             }
-            .button {
-              display: inline-block;
-              padding: 14px 32px;
-              background-color: #a855f7;
-              color: white;
-              text-decoration: none;
-              border-radius: 8px;
-              margin: 20px 0;
+            .total-row .label {
+              font-size: 18px;
               font-weight: 600;
-              text-align: center;
+              color: #475569;
             }
-            .button:hover {
-              background-color: #9333ea;
+            .total-row .amount {
+              font-size: 28px;
+              font-weight: bold;
+              color: #10b981;
             }
-            .footer {
-              text-align: center;
-              color: #64748b;
-              font-size: 14px;
-              margin-top: 30px;
-              padding-top: 20px;
-              border-top: 1px solid #e2e8f0;
-            }
-            .highlight {
-              background-color: #fef3c7;
-              padding: 15px;
-              border-radius: 6px;
+            .pickup-notice {
+              background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+              padding: 20px;
+              border-radius: 8px;
               border-left: 4px solid #f59e0b;
               margin: 20px 0;
             }
-            .highlight strong {
+            .pickup-notice h4 {
+              margin: 0 0 10px 0;
               color: #92400e;
+              font-size: 16px;
+            }
+            .pickup-notice p {
+              margin: 5px 0;
+              color: #78350f;
+            }
+            .pickup-notice strong {
+              color: #92400e;
+            }
+            .info-box {
+              background-color: #f0fdf4;
+              padding: 15px;
+              border-radius: 6px;
+              border-left: 4px solid #10b981;
+              margin: 20px 0;
+            }
+            .info-box h4 {
+              margin: 0 0 10px 0;
+              color: #065f46;
+            }
+            .info-box ul {
+              margin: 0;
+              padding-left: 20px;
+            }
+            .info-box li {
+              color: #047857;
+              margin: 5px 0;
+            }
+            .button {
+              display: inline-block;
+              padding: 12px 30px;
+              background-color: #10b981;
+              color: #ffffff !important;
+              text-decoration: none;
+              border-radius: 6px;
+              margin: 20px 0;
+              font-weight: 600;
+            }
+            .footer {
+              text-align: center;
+              padding: 20px;
+              color: #64748b;
+              font-size: 14px;
             }
           </style>
         </head>
@@ -136,18 +201,22 @@ export async function POST(request: NextRequest) {
           <div class="container">
             <div class="header">
               <h1>🧺 NorthEnd Laundry</h1>
+              <p style="margin: 10px 0 0 0; opacity: 0.9;">Your Trusted Laundry Service</p>
             </div>
             <div class="content">
-              <h2>Great News, ${customerName}! 🎉</h2>
-              <p>Your laundry is clean, fresh, and ready for pickup!</p>
+              <h2 style="color: #1e293b; margin-top: 0;">Great News, ${customerName}! 🎉</h2>
+              <p style="font-size: 16px;">Your laundry is clean, fresh, and ready for pickup!</p>
               
-              <div class="status-badge">
-                ✅ READY FOR PICKUP
+              <div class="status-banner">
+                <h2>✅ READY FOR PICKUP</h2>
+                <p>Your order has been completed and is waiting for you</p>
               </div>
-              
-              <div class="order-info">
-                <h3>Order Details</h3>
-                <p><strong>Order ID:</strong> ${orderId}</p>
+
+              <div class="order-card">
+                <h3>Order Summary</h3>
+                <div class="order-id-box">
+                  <strong>${orderId}</strong>
+                </div>
                 
                 ${weight ? `
                 <table class="weight-table">
@@ -180,26 +249,42 @@ export async function POST(request: NextRequest) {
               
               <div class="total-section">
                 <div class="total-row">
-                  <span>Total Amount:</span>
-                  <span>₱${pricing.totalPrice.toFixed(2)}</span>
+                  <span class="label">Total Amount Due:</span>
+                  <span class="amount">₱${pricing.totalPrice.toFixed(2)}</span>
                 </div>
               </div>
               
-              <div class="highlight">
-                <strong>📍 Please come pick up your laundry at your earliest convenience!</strong>
-                <p style="margin: 10px 0 0 0;">Our store hours are [Your Store Hours Here]</p>
+              <div class="pickup-notice">
+                <h4>📍 Ready for Pickup Now!</h4>
+                <p><strong>Please come pick up your laundry at your earliest convenience.</strong></p>
+                <p style="margin-top: 10px;">💳 Payment can be made at the time of pickup</p>
+                <p>🕒 Store Hours: [Your Store Hours Here]</p>
+              </div>
+
+              <div class="info-box">
+                <h4>💡 What to Bring:</h4>
+                <ul>
+                  <li>Your Order ID: <strong>${orderId}</strong></li>
+                  <li>Payment for ₱${pricing.totalPrice.toFixed(2)}</li>
+                  <li>Valid ID (if required)</li>
+                </ul>
               </div>
               
               <center>
-                <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/track?id=${orderId}" class="button">
-                  Track Your Order
+                <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/track?id=${orderId}" class="button" style="color: #ffffff !important; text-decoration: none; background-color: #10b981;">
+                  View Order Details
                 </a>
               </center>
               
-              <div class="footer">
-                <p>Thank you for choosing NorthEnd Laundry!</p>
-                <p>If you have any questions, please don't hesitate to contact us.</p>
-              </div>
+              <p style="color: #64748b; font-size: 14px; margin-top: 30px; text-align: center;">
+                Questions? Contact us at <a href="mailto:${process.env.GMAIL_USER}" style="color: #10b981;">${process.env.GMAIL_USER}</a>
+              </p>
+            </div>
+            
+            <div class="footer">
+              <p>Thank you for choosing NorthEnd Laundry!</p>
+              <p style="margin: 5px 0 0 0;">© ${new Date().getFullYear()} NorthEnd Laundry. All rights reserved.</p>
+              <p style="margin: 5px 0 0 0;">This email was sent to ${to}</p>
             </div>
           </div>
         </body>
@@ -209,7 +294,7 @@ export async function POST(request: NextRequest) {
     // Send the email
     const result = await sendEmail({
       to,
-      subject: `Your Laundry is Ready for Pickup! - Order ${orderId}`,
+      subject: `Your Laundry is Ready for Pickup! - Order ${orderId} | NorthEnd Laundry`,
       html,
     });
 
