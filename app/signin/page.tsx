@@ -27,15 +27,12 @@ export default function SignIn() {
           <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-200">
             Login
           </h1>
-          <div className="flex-col items-start text-left">
-            <p className="text-slate-600 dark:text-slate-400">
-              Admin: admin@northend.com
+          <div className="flex flex-col items-start text-left text-sm">
+            <p className="font-medium text-slate-700 dark:text-slate-300">
+              Authorized Access Only
             </p>
             <p className="text-slate-600 dark:text-slate-400">
-              Staff: staff@northend.com
-            </p>
-            <p className="text-slate-600 dark:text-slate-400">
-              Password: password1234
+              This system is intended for NorthEnd Laundry administrators and staff.
             </p>
           </div>
         </div>
