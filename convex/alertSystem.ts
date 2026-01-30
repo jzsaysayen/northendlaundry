@@ -1,4 +1,4 @@
-import { mutation } from "./_generated/server";
+import { mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 
 // Helper function to create an alert
@@ -41,8 +41,8 @@ async function createAlertHelper(
   });
 }
 
-// Generate alerts based on business metrics
-export const generateAlerts = mutation({
+// Generate alerts based on business metrics (INTERNAL - for cron jobs)
+export const generateAlerts = internalMutation({
   args: {},
   handler: async (ctx) => {
     const now = Date.now();
@@ -168,8 +168,8 @@ export const markAlertAsRead = mutation({
   },
 });
 
-// Delete old alerts (cleanup)
-export const cleanupExpiredAlerts = mutation({
+// Delete old alerts (cleanup) - INTERNAL for cron jobs
+export const cleanupExpiredAlerts = internalMutation({
   args: {},
   handler: async (ctx) => {
     const now = Date.now();
