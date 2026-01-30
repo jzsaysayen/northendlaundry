@@ -289,7 +289,7 @@ export default function AnalyticsReportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex">
+    <div className="min-h-screen bg-white dark:bg-slate-950 flex">
       <AdminSidebar userName={user.name || "User"} userEmail={user.email} />
 
       <main className="flex-1 overflow-auto">
@@ -298,8 +298,7 @@ export default function AnalyticsReportPage() {
             {/* Header */}
             <div className="mb-8 flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-3">
-                  <BarChart3 className="text-blue-600" size={32} />
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
                   Advanced Analytics
                 </h1>
                 <p className="text-slate-600 dark:text-slate-400 mt-1">
