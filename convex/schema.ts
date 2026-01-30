@@ -174,10 +174,13 @@ export default defineSchema({
     title: v.string(),
     message: v.string(),
     isRead: v.boolean(),
+    isResolved: v.boolean(), // Track if the issue is resolved
     createdAt: v.number(),
     expiresAt: v.optional(v.number()),
+    resolvedAt: v.optional(v.number()), // When the alert was resolved
   })
     .index("by_severity", ["severity"])
     .index("by_is_read", ["isRead"])
-    .index("by_created_at", ["createdAt"]),
+    .index("by_created_at", ["createdAt"])
+    .index("by_resolved", ["isResolved"]), // Index for filtering resolved alerts
 });

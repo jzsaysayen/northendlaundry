@@ -249,7 +249,7 @@ export const getTopCustomers = query({
   },
 });
 
-// Get active alerts
+// Get active alerts - UPDATED to only show unresolved alerts
 export const getActiveAlerts = query({
   args: {},
   handler: async (ctx) => {
@@ -257,13 +257,10 @@ export const getActiveAlerts = query({
     
     return await ctx.db
       .query("systemAlerts")
-      .filter((q) => 
+      .filter((q: any) => 
         q.and(
-          q.eq(q.field("isRead"), false),
-          q.or(
-            q.eq(q.field("expiresAt"), undefined),
-            q.gt(q.field("expiresAt"), now)
-          )
+          q.eq(q.field("isResolved"), false), // Only show unresolved alerts
+          q.gt(q.field("expiresAt"), now) // Not expired
         )
       )
       .order("desc")

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import AdminSidebar from "@/components/Adminsidebar";
 import { useRouter } from "next/navigation";
@@ -14,14 +14,12 @@ import {
   Clock,
   AlertCircle,
   CheckCircle,
-  Calendar,
   Activity,
   BarChart3,
   TrendingUpIcon,
+  X,
 } from "lucide-react";
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
   XAxis,
@@ -37,6 +35,9 @@ export default function AdminDashboard() {
   const user = useQuery(api.users.getCurrentUser);
   const router = useRouter();
   const [timeRange, setTimeRange] = useState<"today" | "week" | "month" | "all">("month");
+  
+  // Add mutation for resolving alerts
+  const resolveAlert = useMutation(api.alertSystem.resolveAlert);
 
   useEffect(() => {
     if (user === undefined) return;
@@ -55,7 +56,7 @@ export default function AdminDashboard() {
   });
 
   const recentActivity = useQuery(api.analytics.getRecentActivity, {
-    limit: 5, // Changed from 10 to 5
+    limit: 5,
   });
 
   const topCustomers = useQuery(api.analytics.getTopCustomers, {
@@ -84,7 +85,6 @@ export default function AdminDashboard() {
     revenueGrowth,
     totalOrders,
     ordersGrowth,
-    activeOrders,
     totalCustomers,
     customersGrowth,
     avgTurnaroundTime,
@@ -157,7 +157,7 @@ export default function AdminDashboard() {
               </button>
             </div>
 
-            {/* Alerts */}
+            {/* Alerts with Dismiss Button */}
             {alerts && alerts.length > 0 && (
               <div className="mb-6 space-y-2">
                 {alerts.map((alert) => (
@@ -189,6 +189,19 @@ export default function AdminDashboard() {
                         {alert.message}
                       </p>
                     </div>
+                    <button
+                      onClick={() => resolveAlert({ alertId: alert._id })}
+                      className={`p-1.5 rounded-lg transition-colors hover:bg-white/50 dark:hover:bg-slate-800/50 ${
+                        alert.severity === "critical"
+                          ? "text-red-600 dark:text-red-400"
+                          : alert.severity === "warning"
+                          ? "text-amber-600 dark:text-amber-400"
+                          : "text-blue-600 dark:text-blue-400"
+                      }`}
+                      title="Dismiss alert"
+                    >
+                      <X size={18} />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -196,7 +209,6 @@ export default function AdminDashboard() {
 
             {/* Key Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {/* Total Revenue */}
               <MetricCard
                 title="Total Revenue"
                 value={`₱${totalRevenue.toLocaleString()}`}
@@ -205,8 +217,6 @@ export default function AdminDashboard() {
                 iconColor="text-green-600 dark:text-green-400"
                 iconBg="bg-green-100 dark:bg-green-950/30"
               />
-
-              {/* Total Laundry */}
               <MetricCard
                 title="Total Laundry"
                 value={totalOrders.toString()}
@@ -215,8 +225,6 @@ export default function AdminDashboard() {
                 iconColor="text-blue-600 dark:text-blue-400"
                 iconBg="bg-blue-100 dark:bg-blue-950/30"
               />
-
-              {/* Total Customers */}
               <MetricCard
                 title="Total Customers"
                 value={totalCustomers.toString()}
@@ -225,8 +233,6 @@ export default function AdminDashboard() {
                 iconColor="text-purple-600 dark:text-purple-400"
                 iconBg="bg-purple-100 dark:bg-purple-950/30"
               />
-
-              {/* Avg Turnaround */}
               <MetricCard
                 title="Avg Turnaround"
                 value={`${avgTurnaroundTime}h`}
