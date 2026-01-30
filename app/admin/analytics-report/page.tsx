@@ -152,9 +152,9 @@ export default function AnalyticsReportPage() {
     customerSpending.set(customerId, current + (order.pricing?.totalPrice || 0));
   });
 
-  const highValueCustomers = Array.from(customerSpending.values()).filter((v) => v >= 5000).length;
-  const mediumValueCustomers = Array.from(customerSpending.values()).filter((v) => v >= 1000 && v < 5000).length;
-  const lowValueCustomers = Array.from(customerSpending.values()).filter((v) => v < 1000).length;
+  const highValueCustomers = Array.from(customerSpending.values()).filter((v) => v >= 1000).length;
+  const mediumValueCustomers = Array.from(customerSpending.values()).filter((v) => v >= 500 && v < 1000).length;
+  const lowValueCustomers = Array.from(customerSpending.values()).filter((v) => v < 500).length;
 
   // NEW VS RETURNING CUSTOMERS
   const periodStart = dateRange.start.getTime();
@@ -202,9 +202,9 @@ export default function AnalyticsReportPage() {
 
   // Customer Segment Data
   const customerSegmentData = [
-    { name: "High Value (₱5000+)", value: highValueCustomers, color: "#10b981" },
-    { name: "Medium Value (₱1000-5000)", value: mediumValueCustomers, color: "#3b82f6" },
-    { name: "Low Value (<₱1000)", value: lowValueCustomers, color: "#f59e0b" },
+    { name: "High Value (₱1000+)", value: highValueCustomers, color: "#10b981" },
+    { name: "Medium Value (₱500-999)", value: mediumValueCustomers, color: "#3b82f6" },
+    { name: "Low Value (<₱500)", value: lowValueCustomers, color: "#f59e0b" },
   ].filter((item) => item.value > 0);
 
   // Export to CSV
@@ -231,9 +231,9 @@ export default function AnalyticsReportPage() {
       [""],
       ["Customer Segmentation by Spending"],
       ["Segment", "Count", "Percentage of Total"],
-      ["High Value (₱5000+)", highValueCustomers, `${((highValueCustomers / (highValueCustomers + mediumValueCustomers + lowValueCustomers || 1)) * 100).toFixed(1)}%`],
-      ["Medium Value (₱1000-5000)", mediumValueCustomers, `${((mediumValueCustomers / (highValueCustomers + mediumValueCustomers + lowValueCustomers || 1)) * 100).toFixed(1)}%`],
-      ["Low Value (<₱1000)", lowValueCustomers, `${((lowValueCustomers / (highValueCustomers + mediumValueCustomers + lowValueCustomers || 1)) * 100).toFixed(1)}%`],
+      ["High Value (₱1000+)", highValueCustomers, `${((highValueCustomers / (highValueCustomers + mediumValueCustomers + lowValueCustomers || 1)) * 100).toFixed(1)}%`],
+      ["Medium Value (₱500-999)", mediumValueCustomers, `${((mediumValueCustomers / (highValueCustomers + mediumValueCustomers + lowValueCustomers || 1)) * 100).toFixed(1)}%`],
+      ["Low Value (<₱500)", lowValueCustomers, `${((lowValueCustomers / (highValueCustomers + mediumValueCustomers + lowValueCustomers || 1)) * 100).toFixed(1)}%`],
       ["TOTAL", highValueCustomers + mediumValueCustomers + lowValueCustomers, "100%"],
       [""],
       ["Customer Acquisition Analysis"],
