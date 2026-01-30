@@ -1,50 +1,207 @@
-# Welcome to your Convex + Next.js + Convex Auth app
+# 🧺 NorthEnd Laundry Management System
 
-This is a [Convex](https://convex.dev/) project created with [`npm create convex`](https://www.npmjs.com/package/create-convex).
+NorthEnd Laundry is a **full‑stack web application** designed to help laundry shops manage daily operations efficiently. It provides role‑based access for **Admins** and **Staff**, real‑time order tracking for customers, and a secure backend powered by Convex.
 
-After the initial setup (<2 minutes) you'll have a working full-stack app using:
+This project is built as a **capstone‑ready system**, focusing on clean architecture, modern tooling, and practical real‑world workflows.
 
-- Convex as your backend (database, server logic)
-- [React](https://react.dev/) as your frontend (web page interactivity)
-- [Next.js](https://nextjs.org/) for optimized web hosting and page routing
-- [Tailwind](https://tailwindcss.com/) for building great looking accessible UI
-- [Convex Auth](https://labs.convex.dev/auth) for authentication
+---
 
-## Get started
+## ✨ Features
 
-If you just cloned this codebase and didn't use `npm create convex`, run:
+### 👤 Authentication & Roles
+
+* Secure authentication
+* Role‑based access control (Admin / Staff)
+* Restricted admin‑only operations
+
+### 🧾 Laundry Order Management
+
+* Create and manage laundry orders
+* Track order status (Pending, In‑Progress, Finished, Paid)
+* Generate unique tracking IDs for customers
+
+### 📦 Customer Order Tracking
+
+* Public tracking page using Tracking ID
+* Real‑time status updates
+* No login required for customers
+
+### 📊 Admin & Staff Dashboard
+
+* View all laundry orders
+* Update order status
+* Monitor daily operations
+
+### 🔔 Notifications (Planned / Extensible)
+
+* Email notifications for order updates
+* Status change alerts
+
+---
+
+## 🛠 Tech Stack
+
+### Frontend
+
+* **Next.js (App Router)**
+* **React**
+* **TypeScript**
+* **Tailwind CSS**
+* **shadcn/ui**
+
+### Backend
+
+* **Convex** (Database + Server Functions)
+* **Convex Auth** (Authentication & session management)
+* **Type-safe queries and mutations**
+* **Nodemailer** (Email notifications via Gmail SMTP)
+
+### Email Service
+
+* Gmail SMTP via Nodemailer
+* Used for order notifications and status updates
+
+### Deployment
+
+* **Vercel** (Frontend)
+* **Convex Cloud** (Backend)
+
+---
+
+## 📁 Project Structure
 
 ```
+northendlaundry/
+├── app/                # Next.js routes & pages
+├── components/         # Reusable UI components
+├── hooks/              # Custom React hooks
+├── lib/                # Utilities & helpers
+├── convex/             # Convex backend (DB schema, queries, mutations)
+├── public/             # Static assets
+├── .env.example        # Environment variable template
+├── package.json
+├── tsconfig.json
+└── README.md
+```
+
+---
+
+## 🚀 Getting Started (Local Development)
+
+### 1️⃣ Clone the repository
+
+```bash
+git clone https://github.com/jzsaysayen/northendlaundry.git
+cd northendlaundry
+```
+
+### 2️⃣ Install dependencies
+
+```bash
 npm install
+```
+
+### 3️⃣ Set up environment variables
+
+Create a `.env.local` file based on `.env.example`:
+
+````env
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+CONVEX_DEPLOYMENT=your-convex-deployment-id
+
+# Convex Auth
+CONVEX_SITE_URL=http://localhost:3000
+
+# Nodemailer (Gmail)
+EMAIL_USER=yourgmail@gmail.com
+EMAIL_PASS=your-app-password
+```env
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+CONVEX_DEPLOYMENT=your-convex-deployment-id
+````
+
+> ⚠️ Do not commit `.env.local` to version control.
+
+### 4️⃣ Run the development server
+
+```bash
 npm run dev
 ```
 
-If you're reading this README on GitHub and want to use this template, run:
+The app will be available at:
 
 ```
-npm create convex@latest -- -t nextjs-convexauth
+http://localhost:3000
 ```
 
-## Learn more
+---
 
-To learn more about developing your project with Convex, check out:
+## 🌐 Deployment Notes
 
-- The [Tour of Convex](https://docs.convex.dev/get-started) for a thorough introduction to Convex principles.
-- The rest of [Convex docs](https://docs.convex.dev/) to learn about all Convex features.
-- [Stack](https://stack.convex.dev/) for in-depth articles on advanced topics.
-- [Convex Auth docs](https://labs.convex.dev/auth) for documentation on the Convex Auth library.
+### Vercel
 
-## Configuring other authentication methods
+* Set `NEXT_PUBLIC_APP_URL` in **Vercel → Project Settings → Environment Variables**
+* Example:
 
-To configure different authentication methods, see [Configuration](https://labs.convex.dev/auth/config) in the Convex Auth docs.
+  ```
+  NEXT_PUBLIC_APP_URL=https://your-app-name.vercel.app
+  ```
+* Redeploy after adding environment variables
 
-## Join the community
+### Convex
 
-Join thousands of developers building full-stack apps with Convex:
+* Ensure your Convex deployment is active
+* Run Convex locally if needed:
 
-- Join the [Convex Discord community](https://convex.dev/community) to get help in real-time.
-- Follow [Convex on GitHub](https://github.com/get-convex/), star and contribute to the open-source implementation of Convex.
+```bash
+npx convex dev
+```
 
-### NodeMailer + Gmail
+---
 
-https://www.youtube.com/watch?v=4JkHFhLSQRM
+## 🔐 Security Notes
+
+* Authentication handled via **Convex Auth**
+* Role-based access checks enforced server-side
+* No plaintext passwords exposed in the UI
+* Gmail credentials use **App Passwords**, not personal passwords
+* Environment variables are required for production safety
+
+---
+
+## 📈 Future Improvements
+
+* Advanced pagination and filtering
+* Activity logs for admin actions
+* Email & SMS notifications
+* Analytics dashboard
+* Better mobile optimization
+
+---
+
+## 🎓 Academic / Portfolio Use
+
+This project is suitable for:
+
+* Capstone projects
+* Portfolio demonstrations
+* Full‑stack system design showcases
+
+It demonstrates:
+
+* Modern Next.js architecture
+* Backend‑as‑a‑Service usage (Convex)
+* Role‑based system design
+* Clean separation of concerns
+
+---
+
+## 📄 License
+
+This project is for educational and demonstration purposes.
+
+---
+
+## CAPSTONE PROJECT
+
+GitHub: [https://github.com/jzsaysayen](https://github.com/jzsaysayen)
