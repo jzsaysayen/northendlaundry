@@ -97,7 +97,7 @@ export default function AdminDashboard() {
   } = dashboardStats;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex">
+    <div className="min-h-screen bg-white dark:bg-slate-950 flex">
       <AdminSidebar userName={user.name} userEmail={user.email} />
 
       <main className="flex-1 overflow-auto">
@@ -811,4 +811,4 @@ function formatRelativeTime(timestamp: number): string {
   if (minutes < 60) return `${minutes}m ago`;
   if (hours < 24) return `${hours}h ago`;
   return `${days}d ago`;
-} 
+}
