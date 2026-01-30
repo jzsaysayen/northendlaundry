@@ -12,6 +12,7 @@ import type * as alertSystem from "../alertSystem.js";
 import type * as analytics from "../analytics.js";
 import type * as auditLogs from "../auditLogs.js";
 import type * as auth from "../auth.js";
+import type * as crons from "../crons.js";
 import type * as customers from "../customers.js";
 import type * as http from "../http.js";
 import type * as laundryOrders from "../laundryOrders.js";
@@ -30,6 +31,7 @@ declare const fullApi: ApiFromModules<{
   analytics: typeof analytics;
   auditLogs: typeof auditLogs;
   auth: typeof auth;
+  crons: typeof crons;
   customers: typeof customers;
   http: typeof http;
   laundryOrders: typeof laundryOrders;
