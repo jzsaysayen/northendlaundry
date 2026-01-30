@@ -55,7 +55,7 @@ export default function AdminDashboard() {
   });
 
   const recentActivity = useQuery(api.analytics.getRecentActivity, {
-    limit: 10,
+    limit: 5, // Changed from 10 to 5
   });
 
   const topCustomers = useQuery(api.analytics.getTopCustomers, {
@@ -573,6 +573,49 @@ function MetricCard({
   );
 }
 
+// Custom tooltip components defined outside render
+const LineChartTooltip = ({ active, payload, formatValue }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-slate-900 dark:bg-slate-800 text-white px-3 py-2 rounded-lg shadow-xl border border-slate-700">
+        <p className="font-bold text-sm">{formatValue(payload[0].value)}</p>
+        <p className="text-xs text-slate-300 mt-1">{payload[0].payload.date}</p>
+      </div>
+    );
+  }
+  return null;
+};
+
+const BarChartTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const value = payload[0].value;
+    return (
+      <div className="bg-slate-900 dark:bg-slate-800 text-white px-3 py-2 rounded-lg shadow-xl border border-slate-700">
+        <p className="font-bold text-sm">{value} {value === 1 ? 'order' : 'orders'}</p>
+        <p className="text-xs text-slate-300 mt-1">{payload[0].payload.date}</p>
+      </div>
+    );
+  }
+  return null;
+};
+
+const BarChartLabel = (props: any) => {
+  const { x, y, width, value } = props;
+  if (value === 0) return null;
+  
+  return (
+    <text 
+      x={x + width / 2} 
+      y={y - 5} 
+      fill="currentColor" 
+      textAnchor="middle" 
+      className="text-xs font-bold fill-slate-700 dark:fill-slate-300"
+    >
+      {value}
+    </text>
+  );
+};
+
 // Professional Area Chart using Recharts
 function ImprovedLineChart({ 
   data, 
@@ -639,19 +682,6 @@ function ImprovedLineChart({
     );
   }
 
-  // Custom tooltip
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-slate-900 dark:bg-slate-800 text-white px-3 py-2 rounded-lg shadow-xl border border-slate-700">
-          <p className="font-bold text-sm">{formatValue(payload[0].value)}</p>
-          <p className="text-xs text-slate-300 mt-1">{payload[0].payload.date}</p>
-        </div>
-      );
-    }
-    return null;
-  };
-
   return (
     <div className="h-64">
       <ResponsiveContainer width="100%" height="100%">
@@ -677,7 +707,7 @@ function ImprovedLineChart({
             axisLine={{ stroke: 'currentColor', opacity: 0.2 }}
             tickFormatter={(value) => `₱${value}`}
           />
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={<LineChartTooltip formatValue={formatValue} />} />
           <Area 
             type="monotone" 
             dataKey="value" 
@@ -737,38 +767,6 @@ function ImprovedBarChart({
     );
   }
 
-  // Custom tooltip
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const value = payload[0].value;
-      return (
-        <div className="bg-slate-900 dark:bg-slate-800 text-white px-3 py-2 rounded-lg shadow-xl border border-slate-700">
-          <p className="font-bold text-sm">{value} {value === 1 ? 'order' : 'orders'}</p>
-          <p className="text-xs text-slate-300 mt-1">{payload[0].payload.date}</p>
-        </div>
-      );
-    }
-    return null;
-  };
-
-  // Custom bar label to show value on top
-  const CustomLabel = (props: any) => {
-    const { x, y, width, value } = props;
-    if (value === 0) return null;
-    
-    return (
-      <text 
-        x={x + width / 2} 
-        y={y - 5} 
-        fill="currentColor" 
-        textAnchor="middle" 
-        className="text-xs font-bold fill-slate-700 dark:fill-slate-300"
-      >
-        {value}
-      </text>
-    );
-  };
-
   return (
     <div className="h-64">
       <ResponsiveContainer width="100%" height="100%">
@@ -788,12 +786,12 @@ function ImprovedBarChart({
             axisLine={{ stroke: 'currentColor', opacity: 0.2 }}
             allowDecimals={false}
           />
-          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
+          <Tooltip content={<BarChartTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
           <Bar 
             dataKey="value" 
             fill={color} 
             radius={[4, 4, 0, 0]}
-            label={<CustomLabel />}
+            label={<BarChartLabel />}
           />
         </BarChart>
       </ResponsiveContainer>
@@ -813,4 +811,4 @@ function formatRelativeTime(timestamp: number): string {
   if (minutes < 60) return `${minutes}m ago`;
   if (hours < 24) return `${hours}h ago`;
   return `${days}d ago`;
-}
+} 
