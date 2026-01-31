@@ -1,8 +1,8 @@
 # 🧺 NorthEnd Laundry Management System
 
-NorthEnd Laundry is a **full‑stack web application** designed to help laundry shops manage daily operations efficiently. It provides role‑based access for **Admins** and **Staff**, real‑time order tracking for customers, and a secure backend powered by Convex.
+NorthEnd Laundry is a **full-stack laundry management system** designed to support real-world laundry shop operations. It provides role-based access for admins and staff, customer order tracking, analytics dashboards, and an automated alerting system to help owners monitor business performance.
 
-This project is built as a **capstone‑ready system**, focusing on clean architecture, modern tooling, and practical real‑world workflows.
+This project is **capstone-ready** and demonstrates practical system design, backend logic, and data-driven decision support.
 
 ---
 
@@ -10,21 +10,49 @@ This project is built as a **capstone‑ready system**, focusing on clean archit
 
 ### 👤 Authentication & Roles
 
-* Secure authentication
-* Role‑based access control (Admin / Staff)
-* Restricted admin‑only operations
+* Secure authentication using **Convex Auth**
+* Role-based access control (Admin / Staff)
+* Server-side authorization for protected actions
 
-### 🧾 Laundry Order Management
+### 🧾 Laundry Management
 
-* Create and manage laundry orders
-* Track order status (Pending, In-Progress, Finished, Paid)
-* Generate unique tracking IDs for customers
+* Create, update, and manage **laundry jobs**
+* Laundry lifecycle tracking (Pending, In Progress, Completed, Paid)
+* Pricing, payment status, and pickup scheduling per laundry job
+* Unique tracking IDs assigned to each laundry job
 
-### 📊 Admin Dashboard & Analytics
+### 📦 Customer Laundry Tracking
 
-* Visual analytics dashboard for owners and administrators
-* Charts showing laundry volume, order statuses, and operational flow
-* Data-driven insights to monitor daily and overall performance
+* Public laundry tracking page using a Tracking ID
+* Real-time laundry status updates
+* No customer login required
+
+### 📊 Admin & Staff Dashboard
+
+* Centralized dashboard for daily laundry operations
+* View and manage all active and completed laundry jobs
+* Staff-controlled laundry status updates
+* Operational visibility for admins and shop owners
+
+### 📈 Analytics & Reporting
+
+* Visual analytics for laundry operations and performance
+* Laundry volume, revenue, and turnaround time insights
+* Data-driven reporting to support business decisions
+* Charts and visualizations powered by **Recharts**
+
+### 🚨 System Alerts & Notifications
+
+* Automated system alerts based on operational and financial metrics
+* Revenue drop detection and performance monitoring
+* High unpaid laundry rate alerts
+* Overdue laundry job detection
+* Slow turnaround time alerts
+* No-activity or low-volume warnings
+* Severity-based alerts (info, warning, critical)
+* Automatic alert resolution when conditions normalize
+* Alert expiration and cleanup to prevent stale alerts
+* Email notifications delivered via **Nodemailer (Gmail SMTP)**
 
 ---
 
@@ -37,25 +65,25 @@ This project is built as a **capstone‑ready system**, focusing on clean archit
 * **TypeScript**
 * **Tailwind CSS**
 * **shadcn/ui**
-* **Recharts** (Data visualization & analytics)
+* **Recharts** (Analytics & data visualization)
 * **lucide-react** (Icons)
 
 ### Backend
 
-* **Convex** (Database + Server Functions)
-* **Convex Auth** (Authentication & session management)
-* **Type-safe queries and mutations**
-* **Nodemailer** (Email notifications via Gmail SMTP)
+* **Convex** (Database, queries, and mutations)
+* **Convex Auth** (Authentication & session handling)
+* Type-safe backend functions
+* Automated background tasks via internal mutations
 
 ### Email Service
 
-* Gmail SMTP via Nodemailer
-* Used for order notifications and status updates
+* Nodemailer with Gmail SMTP
+* Used for customer and system notifications
 
 ### Deployment
 
-* **Vercel** (Frontend)
-* **Convex Cloud** (Backend)
+* **Vercel** (Frontend hosting)
+* **Convex Cloud** (Backend services)
 
 ---
 
@@ -63,11 +91,11 @@ This project is built as a **capstone‑ready system**, focusing on clean archit
 
 ```
 northendlaundry/
-├── app/                # Next.js routes & pages
+├── app/                # Next.js routes and pages
 ├── components/         # Reusable UI components
 ├── hooks/              # Custom React hooks
-├── lib/                # Utilities & helpers
-├── convex/             # Convex backend (DB schema, queries, mutations)
+├── lib/                # Utilities and helpers
+├── convex/             # Convex backend (schema, queries, mutations)
 ├── public/             # Static assets
 ├── .env.example        # Environment variable template
 ├── package.json
@@ -92,26 +120,23 @@ cd northendlaundry
 npm install
 ```
 
-### 3️⃣ Set up environment variables
+### 3️⃣ Environment variables
 
 Create a `.env.local` file based on `.env.example`:
 
-````env
+```env
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 CONVEX_DEPLOYMENT=your-convex-deployment-id
 
 # Convex Auth
 CONVEX_SITE_URL=http://localhost:3000
 
-# Nodemailer (Gmail)
+# Nodemailer (Gmail SMTP)
 EMAIL_USER=yourgmail@gmail.com
 EMAIL_PASS=your-app-password
-```env
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-CONVEX_DEPLOYMENT=your-convex-deployment-id
-````
+```
 
-> ⚠️ Do not commit `.env.local` to version control.
+> ⚠️ Never commit `.env.local` to version control.
 
 ### 4️⃣ Run the development server
 
@@ -119,7 +144,7 @@ CONVEX_DEPLOYMENT=your-convex-deployment-id
 npm run dev
 ```
 
-The app will be available at:
+Access the app at:
 
 ```
 http://localhost:3000
@@ -131,13 +156,14 @@ http://localhost:3000
 
 ### Vercel
 
-* Set `NEXT_PUBLIC_APP_URL` in **Vercel → Project Settings → Environment Variables**
+* Set `NEXT_PUBLIC_APP_URL` in Vercel environment variables
 * Example:
 
-  ```
-  NEXT_PUBLIC_APP_URL=https://your-app-name.vercel.app
-  ```
-* Redeploy after adding environment variables
+```
+NEXT_PUBLIC_APP_URL=https://your-app-name.vercel.app
+```
+
+* Redeploy after updating variables
 
 ### Convex
 
@@ -150,51 +176,51 @@ npx convex dev
 
 ---
 
-## 🔐 Security Notes
+## 🔐 Security Considerations
 
-* Authentication handled via **Convex Auth**
-* Role-based access checks enforced server-side
-* No plaintext passwords exposed in the UI
-* Gmail credentials use **App Passwords**, not personal passwords
-* Environment variables are required for production safety
+* Authentication handled by **Convex Auth**
+* Role checks enforced on the backend
+* No plaintext passwords stored or exposed
+* Gmail App Passwords used for email delivery
+* Environment-based configuration for production safety
 
 ---
 
 ## 📈 Future Improvements
 
-* Advanced pagination and filtering
-* Activity logs for admin actions
-* Email & SMS notifications
-* Analytics dashboard
-* Better mobile optimization
+* SMS or push notifications
+* Advanced filtering and pagination
+* Admin activity logs
+* Configurable alert thresholds
+* Improved mobile responsiveness
 
 ---
 
-## 🎓 Academic / Portfolio Use
+## 🎓 Academic & Portfolio Use
 
-This project is suitable for:
+This project demonstrates:
+
+* Modern Next.js application architecture
+* Backend-as-a-Service integration (Convex)
+* Role-based access control
+* Business analytics and alerting logic
+* Real-world operational workflows
+
+Suitable for:
 
 * Capstone projects
 * Portfolio demonstrations
-* Full‑stack system design showcases
-
-It demonstrates:
-
-* Modern Next.js architecture
-* Backend‑as‑a‑Service usage (Convex)
-* Role‑based system design
-* Clean separation of concerns
-
----
-
-## 📄 License
-
-This project is for educational and demonstration purposes.
+* Full-stack system design showcases
 
 ---
 
 ## 👤 Author
 
 **CAPSTONE PROJECT**
-
 GitHub: [https://github.com/jzsaysayen](https://github.com/jzsaysayen)
+
+---
+
+## 📄 License
+
+For educational and demonstration purposes only.
