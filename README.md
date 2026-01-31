@@ -17,25 +17,14 @@ This project is built as a **capstone‑ready system**, focusing on clean archit
 ### 🧾 Laundry Order Management
 
 * Create and manage laundry orders
-* Track order status (Pending, In‑Progress, Finished, Paid)
+* Track order status (Pending, In-Progress, Finished, Paid)
 * Generate unique tracking IDs for customers
 
-### 📦 Customer Order Tracking
+### 📊 Admin Dashboard & Analytics
 
-* Public tracking page using Tracking ID
-* Real‑time status updates
-* No login required for customers
-
-### 📊 Admin & Staff Dashboard
-
-* View all laundry orders
-* Update order status
-* Monitor daily operations
-
-### 🔔 Notifications (Planned / Extensible)
-
-* Email notifications for order updates
-* Status change alerts
+* Visual analytics dashboard for owners and administrators
+* Charts showing laundry volume, order statuses, and operational flow
+* Data-driven insights to monitor daily and overall performance
 
 ---
 
@@ -48,6 +37,8 @@ This project is built as a **capstone‑ready system**, focusing on clean archit
 * **TypeScript**
 * **Tailwind CSS**
 * **shadcn/ui**
+* **Recharts** (Data visualization & analytics)
+* **lucide-react** (Icons)
 
 ### Backend
 
@@ -202,6 +193,8 @@ This project is for educational and demonstration purposes.
 
 ---
 
-## CAPSTONE PROJECT
+## 👤 Author
+
+**CAPSTONE PROJECT**
 
 GitHub: [https://github.com/jzsaysayen](https://github.com/jzsaysayen)
